@@ -6,11 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using IdentityDemo.Models;
 using IdentityDemo.Views.Account;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace IdentityDemo.Controllers;
 
 public class AccountController(AccountService accountService) : Controller
 {
+    [Authorize]
     [HttpGet("members")]
     public IActionResult Members()
     {
@@ -31,13 +33,13 @@ public class AccountController(AccountService accountService) : Controller
             return View();
 
         // Try to register user
-        var errorMessage = accountService.TryRegister(viewModel);
-        if (errorMessage != null)
-        {
-            // Show error
-            ModelState.AddModelError(string.Empty, errorMessage);
-            return View();
-        }
+        var errorMessage = accountService.TryRegisterUserAsync(viewModel);
+        //if (errorMessage != null)
+        //{
+        //    // Show error
+        //    ModelState.AddModelError(string.Empty, errorMessage); //TODO
+        //    return View();
+        //}
 
         // Redirect user
         return RedirectToAction(nameof(Login));
@@ -56,13 +58,13 @@ public class AccountController(AccountService accountService) : Controller
             return View();
 
         // Check if credentials is valid (and set auth cookie)
-        var errorMessage = accountService.TryLogin(viewModel);
-        if (errorMessage != null)
-        {
-            // Show error
-            ModelState.AddModelError(string.Empty, errorMessage);
-            return View();
-        }
+        var errorMessage = accountService.TryLoginAsync(viewModel);
+        //if (errorMessage != null)
+        //{
+        //    // Show error
+        //    ModelState.AddModelError(string.Empty, errorMessage);
+        //    return View();
+        //}
 
         // Redirect user
         return RedirectToAction(nameof(Members));
