@@ -1,4 +1,5 @@
 ﻿using IdentityDemo.Views.Account;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace IdentityDemo.Models;
@@ -13,9 +14,13 @@ public class AccountService(
 {
     internal MembersVM GetMembers()
     {
+        var loggedInUserId = userManager.GetUserId(contextAccessor.HttpContext.User);
+
         return new MembersVM
         {
-            Username = contextAccessor.HttpContext!.User.Identity!.Name!
+            Username = contextAccessor.HttpContext!.User.Identity!.Name!,
+            BirthDate = userManager.Users.First(u => u.Id == loggedInUserId).BirthDate,            
+            FirstName = userManager.Users.First(u => u.Id == loggedInUserId).FirstName,
         };
     }
     internal async Task<string?> TryRegisterUserAsync(RegisterVM viewModel)
@@ -23,6 +28,9 @@ public class AccountService(
         var user = new ApplicationUser
         {
             UserName = viewModel.Username,
+            FirstName = viewModel.FirstName,
+            LastName = viewModel.LastName,
+            BirthDate = viewModel.BirthDate,
         };
 
         IdentityResult result = await
@@ -31,7 +39,15 @@ public class AccountService(
         bool wasUserCreated = result.Succeeded;
         return wasUserCreated ? null : result.Errors.First().Description;
     }
-
+    internal async Task TryLoginAfterRegisterAsync(RegisterVM viewModel)
+    {
+        var userLoginInfo = new LoginVM
+        {
+            Username = viewModel.Username,
+            Password = viewModel.Password,
+        };
+        await TryLoginAsync(userLoginInfo);
+    }
     internal async Task<string?> TryLoginAsync(LoginVM viewModel)
     {
         SignInResult result = await signInManager.PasswordSignInAsync(
@@ -42,5 +58,10 @@ public class AccountService(
 
         bool wasUserSignedIn = result.Succeeded;
         return wasUserSignedIn ? null : "Invalid username or password";
+    }
+
+    internal async Task LogoutAsync()
+    {
+        await signInManager.SignOutAsync();
     }
 }

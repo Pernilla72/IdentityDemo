@@ -12,7 +12,7 @@ public class AccountController(AccountService accountService) : Controller
     public IActionResult Members()
     {
         var model = accountService.GetMembers();
-        return View();
+        return View(model);
     }
 
     [HttpGet("")]
@@ -34,7 +34,10 @@ public class AccountController(AccountService accountService) : Controller
             ModelState.AddModelError(string.Empty, errorMessage);
             return View();
         }
-        return RedirectToAction(nameof(Login));
+
+        await accountService.TryLoginAfterRegisterAsync(viewModel);
+
+        return RedirectToAction(nameof(Members));
     }
 
     [HttpGet("login")]
@@ -59,5 +62,11 @@ public class AccountController(AccountService accountService) : Controller
         return RedirectToAction(nameof(Members));
     }
 
+    [HttpGet("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        accountService.LogoutAsync();
+        return RedirectToAction(nameof(Login));
+    }
 
 }
