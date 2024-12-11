@@ -3,12 +3,21 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdentityDemo.Models;
 
-public class AccountService(UserManager<ApplicationUser> userManager,// Hanterar användare
+public class AccountService(
+             UserManager<ApplicationUser> userManager,// Hanterar användare
              SignInManager<ApplicationUser> signInManager,           // Hanterar inlogging
-             RoleManager<IdentityRole> roleManager                   // Hanterar roller
+             RoleManager<IdentityRole> roleManager,                   // Hanterar roller
+             IHttpContextAccessor contextAccessor
              )
 
 {
+    internal MembersVM GetMembers()
+    {
+        return new MembersVM
+        {
+            Username = contextAccessor.HttpContext!.User.Identity!.Name!
+        };
+    }
     internal async Task<string?> TryRegisterUserAsync(RegisterVM viewModel)
     {
         var user = new ApplicationUser
@@ -22,11 +31,6 @@ public class AccountService(UserManager<ApplicationUser> userManager,// Hanterar
         bool wasUserCreated = result.Succeeded;
         return wasUserCreated ? null : result.Errors.First().Description;
     }
-    //public string? TryRegister(RegisterVM viewModel)
-    //{
-    //    // Todo: Try to create a new user
-    //    return "Failed to create user";
-    //}
 
     internal async Task<string?> TryLoginAsync(LoginVM viewModel)
     {
