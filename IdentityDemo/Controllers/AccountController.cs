@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using IdentityDemo.Models;
+﻿using IdentityDemo.Models;
 using IdentityDemo.Views.Account;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityDemo.Controllers;
 
@@ -16,7 +11,8 @@ public class AccountController(AccountService accountService) : Controller
     [HttpGet("members")]
     public IActionResult Members()
     {
-        return View();
+        var model = accountService.GetMembers();
+        return View(model);
     }
 
     [HttpGet("")]
@@ -26,23 +22,22 @@ public class AccountController(AccountService accountService) : Controller
         return View();
     }
 
-    [HttpPost("register")]
-    public IActionResult Register(RegisterVM viewModel)
+    [HttpPost("register")] //Ändrade till async
+    public async Task<IActionResult> Register(RegisterVM viewModel)
     {
         if (!ModelState.IsValid)
             return View();
 
-        // Try to register user
-        var errorMessage = accountService.TryRegisterUserAsync(viewModel);
-        //if (errorMessage != null)
-        //{
-        //    // Show error
-        //    ModelState.AddModelError(string.Empty, errorMessage); //TODO
-        //    return View();
-        //}
+        var errorMessage = await accountService.TryRegisterUserAsync(viewModel);
+        if (errorMessage != null)
+        {
+            ModelState.AddModelError(string.Empty, errorMessage);
+            return View();
+        }
 
-        // Redirect user
-        return RedirectToAction(nameof(Login));
+        await accountService.TryLoginAfterRegisterAsync(viewModel);
+
+        return RedirectToAction(nameof(Members));
     }
 
     [HttpGet("login")]
@@ -52,21 +47,26 @@ public class AccountController(AccountService accountService) : Controller
     }
 
     [HttpPost("login")]
-    public IActionResult Login(LoginVM viewModel)
+    public async Task<IActionResult> Login(LoginVM viewModel)
     {
         if (!ModelState.IsValid)
             return View();
 
-        // Check if credentials is valid (and set auth cookie)
-        var errorMessage = accountService.TryLoginAsync(viewModel);
-        //if (errorMessage != null)
-        //{
-        //    // Show error
-        //    ModelState.AddModelError(string.Empty, errorMessage);
-        //    return View();
-        //}
+        var errorMessage = await accountService.TryLoginAsync(viewModel);
+        if (errorMessage != null)
+        {
+            ModelState.AddModelError(string.Empty, errorMessage);
+            return View();
+        }
 
-        // Redirect user
         return RedirectToAction(nameof(Members));
     }
+
+    [HttpGet("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        accountService.LogoutAsync();
+        return RedirectToAction(nameof(Login));
+    }
+
 }
