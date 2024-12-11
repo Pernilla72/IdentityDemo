@@ -19,15 +19,17 @@ public class AccountService(
     //    }
     //}
 
-    internal MembersVM GetMembers()
+    internal async Task<MembersVM> GetMembersAsync()
     {
         var loggedInUserId = userManager.GetUserId(contextAccessor.HttpContext.User);
+
+        ApplicationUser user = await userManager.FindByIdAsync(loggedInUserId);
 
         return new MembersVM
         {
             Username = contextAccessor.HttpContext!.User.Identity!.Name!,
-            BirthDate = userManager.Users.First(u => u.Id == loggedInUserId).BirthDate,
-            FirstName = userManager.Users.First(u => u.Id == loggedInUserId).FirstName,
+            BirthDate = user.BirthDate,
+            FirstName = user.FirstName,
         };
     }
     internal async Task<string?> TryRegisterUserAsync(RegisterVM viewModel)

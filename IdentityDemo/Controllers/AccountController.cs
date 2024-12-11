@@ -9,9 +9,9 @@ public class AccountController(AccountService accountService) : Controller
 {
     [Authorize]
     [HttpGet("members")]
-    public IActionResult Members()
+    public async Task<IActionResult> MembersAsync()
     {
-        var model = accountService.GetMembers();
+        var model = await accountService.GetMembersAsync();
         return View(model);
     }
 
@@ -37,7 +37,7 @@ public class AccountController(AccountService accountService) : Controller
 
         await accountService.TryLoginAfterRegisterAsync(viewModel);
 
-        return RedirectToAction(nameof(Members));
+        return RedirectToAction(nameof(MembersAsync));
     }
 
     [HttpGet("login")]
@@ -59,13 +59,13 @@ public class AccountController(AccountService accountService) : Controller
             return View();
         }
 
-        return RedirectToAction(nameof(Members));
+        return RedirectToAction(nameof(MembersAsync));
     }
 
     [HttpGet("logout")]
     public async Task<IActionResult> Logout()
     {
-        accountService.LogoutAsync();
+        await accountService.LogoutAsync();
         return RedirectToAction(nameof(Login));
     }
 
@@ -86,6 +86,6 @@ public class AccountController(AccountService accountService) : Controller
             ModelState.AddModelError(string.Empty, errorMessage);
             return View();
         }
-        return RedirectToAction(nameof(Members));
+        return RedirectToAction(nameof(MembersAsync));
     }
 }
