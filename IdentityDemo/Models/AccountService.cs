@@ -1,5 +1,4 @@
 ﻿using IdentityDemo.Views.Account;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace IdentityDemo.Models;
@@ -12,6 +11,14 @@ public class AccountService(
              )
 
 {
+    //public ApplicationUser GetUserById(string id)
+    //{
+    //    var user = new ApplicationUser
+    //    {
+    //        UserName = 
+    //    }
+    //}
+
     internal MembersVM GetMembers()
     {
         var loggedInUserId = userManager.GetUserId(contextAccessor.HttpContext.User);
@@ -19,7 +26,7 @@ public class AccountService(
         return new MembersVM
         {
             Username = contextAccessor.HttpContext!.User.Identity!.Name!,
-            BirthDate = userManager.Users.First(u => u.Id == loggedInUserId).BirthDate,            
+            BirthDate = userManager.Users.First(u => u.Id == loggedInUserId).BirthDate,
             FirstName = userManager.Users.First(u => u.Id == loggedInUserId).FirstName,
         };
     }
@@ -64,4 +71,33 @@ public class AccountService(
     {
         await signInManager.SignOutAsync();
     }
+
+    internal async Task<UpdateVm> LoggedInUserToUpdateVm()
+    {
+        var loggedInUserId = userManager.GetUserId(contextAccessor.HttpContext.User);
+        ApplicationUser user = await userManager.FindByIdAsync(loggedInUserId);
+        return new UpdateVm
+        {
+            Username = user.UserName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            BirthDate = user.BirthDate
+        };
+    }
+    internal async Task<string?> UpdateUser(UpdateVm model)
+    {
+        var loggedInUserId = userManager.GetUserId(contextAccessor.HttpContext.User);
+        ApplicationUser user = await userManager.FindByIdAsync(loggedInUserId);
+
+        user.UserName = model.Username;
+        user.FirstName = model.FirstName;
+        user.LastName = model.LastName;
+        user.BirthDate = model.BirthDate;
+
+        var result = await userManager.UpdateAsync(user);
+        bool wasUserCreated = result.Succeeded;
+        return wasUserCreated ? null : result.Errors.First().Description;
+    }
+
+
 }

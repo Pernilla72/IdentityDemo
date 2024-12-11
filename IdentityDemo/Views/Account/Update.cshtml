@@ -1,0 +1,20 @@
+﻿@model UpdateVm
+
+<form asp-controller="Account" asp-action="Update">
+    <label asp-for="Username"></label>
+    <input asp-for="Username" value="@Model.Username" />
+    <span asp-validation-for="Username"></span>
+
+    <label asp-for="FirstName"></label>
+    <input asp-for="FirstName" value="@Model.FirstName" />
+    <span asp-validation-for="FirstName"></span>
+
+    <label asp-for="LastName"></label>
+    <input asp-for="LastName" value="@Model.LastName" />
+    <span asp-validation-for="LastName"></span>
+
+    <label asp-for="BirthDate"></label>
+    <input asp-for="BirthDate" value="@Model.BirthDate" />
+    <span asp-validation-for="BirthDate"></span>
+    <input type="submit" value="Updatera" />
+</form>

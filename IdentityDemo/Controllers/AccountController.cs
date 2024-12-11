@@ -69,4 +69,23 @@ public class AccountController(AccountService accountService) : Controller
         return RedirectToAction(nameof(Login));
     }
 
+    [HttpGet("update")]
+    public async Task<IActionResult> Update()
+    {
+        var model = await accountService.LoggedInUserToUpdateVm();
+        return View(model);
+    }
+    [HttpPost("update")]
+    public async Task<IActionResult> Update(UpdateVm model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+        var errorMessage = await accountService.UpdateUser(model);
+        if (errorMessage != null)
+        {
+            ModelState.AddModelError(string.Empty, errorMessage);
+            return View();
+        }
+        return RedirectToAction(nameof(Members));
+    }
 }
